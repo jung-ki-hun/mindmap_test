@@ -394,10 +394,17 @@ export default {
     
       if (!this.selected_node) {
         // 선택된 노드가 없을경우
+        console.log('1')
         this.frameData.nodes.push(this.designNode()) // 신규 노드 함수에 추가
-        const nodeObjectDate = {id:this.designNode().id,value:null}
+        console.log('2')
+        console.log(this.frameData.nodes)
+        console.log('3')
+        const nodeObjectDate = { id: this.designNode().id, value:null }
+        console.log('4')
         this.buildUp.nodes.push(nodeObjectDate)//생성시 내용 데이터 저장
+        console.log('5')
         this.$refs.butterfly.redraw(); // 캠퍼스 새로 그려줌
+        console.log('7')
       } else {
         // 선택한 노드가 존재할경우
         // 
@@ -409,8 +416,9 @@ export default {
           source: 'down', // 연결 포인트 위치
           target: 'up', // 대상의 연결 포인트 위치
         }
-        const nodeObjectDate = {id:node.id,value:null}
+        const nodeObjectDate = { id: node.id, value:null }
         this.frameData.edges.push(edge); // 생성된 엣지값 추가
+        this.frameData.nodes.push(node); // 생성된 엣지값 추가
         this.buildUp.nodes.push(nodeObjectDate)//생성시 내용 데이터 저장
         this.$refs.butterfly.redraw(); // 캠퍼스 새로 그려줌
         this.selected_node = null;
