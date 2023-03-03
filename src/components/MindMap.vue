@@ -63,24 +63,24 @@
           group 글자 크기
         </li><br>
         <li>
-          <button @click="editFontSizeNode('down')">
+          <button @click="editFontSizeGroup('down')">
             t</button>
-          <button @click="editFontSizeNode('up')">
+          <button @click="editFontSizeGroup('up')">
             T</button>
         </li><br>
         <li>
           group 크기
         </li><br>
         <li>
-          <button @click="editFontSizeNode('down')">
+          <button @click="editSizeGroup('s')">
             s</button>
-          <button @click="editFontSizeNode('up')">
+          <button @click="editSizeGroup('m')">
             m</button>
-          <button @click="editFontSizeNode('down')">
+          <button @click="editSizeGroup('l')">
             l</button>      
         </li><br>
         <li>
-          <button @click="editGroup()">
+          <button @click="editNameGroup()">
             edit group
           </button>
         </li><br>
@@ -180,11 +180,11 @@ export default {
       isShowMeun: false,
       frameData: {
         groups: [
-          // {
-          //   id: 'g-1',
-          //   left: 10,
-          //   top: 20
-          // }
+          {
+            id: 'g-1',
+            left: 10,
+            top: 20
+          }
         ],
         nodes: [
           {
@@ -285,16 +285,27 @@ export default {
           })
       }
       else {
-        // node dom 구조 가져오기
-        // const node = document.getElementById(`bf_node_${this.selected_node.id}`).getElementsByClassName('vue-bf-node') // 선택한 노드의 엘리멘트값 가져옴
-        // console.log(node);
-        // node[0].style.background = `#aaaaaa`;  // 캠퍼스 화면 갱신해줌
-
         this.frameData.nodes.forEach(x => {
           if (x.id === this.selected_node.id) {
             document.getElementById(`bf_node_${this.selected_node.id}`).getElementsByClassName('vue-bf-node')[0].style.background = '#aaaaaa' // 선택한 노드의 엘리멘트값 가져옴
           } else {
             document.getElementById(`bf_node_${x.id}`).getElementsByClassName('vue-bf-node')[0].style.background = '#fff' // 선택한 노드의 엘리멘트값 가져옴
+          }
+        })
+      }
+    },
+    async 'selected_group' () {
+      if (!this.selected_group) {
+        this.frameData.groups.forEach(x => {
+            document.getElementById(`bf_group_${x.id}`).getElementsByClassName('vue-bf-group')[0].style.background = '#fff' // 선택한 노드의 엘리멘트값 가져옴
+          })
+      }
+      else {
+        this.frameData.groups.forEach(x => {
+          if (x.id === this.selected_group.id) {
+            document.getElementById(`bf_group_${this.selected_group.id}`).getElementsByClassName('vue-bf-group')[0].style.background = '#aaaaaa' // 선택한 노드의 엘리멘트값 가져옴
+          } else {
+            document.getElementById(`bf_group_${x.id}`).getElementsByClassName('vue-bf-group')[0].style.background = '#fff' // 선택한 노드의 엘리멘트값 가져옴
           }
         })
       }
@@ -318,7 +329,7 @@ export default {
         // this.frameData.nodes[Number(index)].render=`<div class="vue-bf-node">${this.buildUp.nodes[Number(index)].value}</div>`; // 노드 디자인 설정공간
       }
     }
-    // this.buildUp.groups = [{ id: 'g-1', value: '투자유치' }] // 추후 디비에서 가져올 예정
+    this.buildUp.groups = [{ id: 'g-1', value: '투자유치',font_size:20,size:'m' }] // 추후 디비에서 가져올 예정
     if (this.buildUp.groups.length > 0) {
       for (let index = 0; index < this.buildUp.groups.length; index++) {
         this.designGroup('', index)
@@ -333,7 +344,7 @@ export default {
         this.selected_node = this.selected_node === null ? v.node : null
       }
       if (v.type.includes('group:') && this.currentMindVueEvent === 'drag:start') {
-        this.selected_group = v.group
+        this.selected_group = this.selected_group === null ?  v.group : null
       }
       if (v.type.includes('drag:end')) {
         if (v.dragNode?.nodes?.length < 0) {
@@ -477,7 +488,7 @@ export default {
      * @param {Number} index
      * @description group 디자인 해주는 함수
      */
-    designGroup (render = null, index) {
+    designGroup (render = null, index = null) {
       const group_id_check = this.current_groups.findIndex(x => x === `g-${this.groups_length + 1}`)
       let disused_index = null
       if (group_id_check !== -1) {
@@ -488,13 +499,26 @@ export default {
             break
           }
         }
-      }
-
+      }// 그룹 아이디 유효성 검증용
       const group = {
         id: group_id_check === -1 ? `g-${this.groups_length + 1}` : `g-${disused_index + 1}`, // index 번호 부여
         top: this.mousePoint.y || 50, // TODO 마우스 좌표 확인해서 해당 포인터의 위치로 생성될수 있도록 수정필요
         left: this.mousePoint.x || 300,
         render: render
+      }
+      const group_type = {
+        s:{
+          min_width:'250px',
+          min_height:'120px',
+        },
+        m:{
+          min_width:'350px',
+          min_height:'200px',
+        },
+        l:{
+          min_width:'500px',
+          min_height:'300px',
+        }
       }
       if (render === null) { // 라이브러리 기본 디자인
         return group
@@ -503,20 +527,43 @@ export default {
         group.render = `<div
           class="vue-bf-group"
           style="border-radius: 5px;
+          min-width: ${group_type[String(this.buildUp.groups[Number(index)].size)].min_width};
+          border: 1px solid #aaa;">
+          <div 
+          class="vue-bf-group-header"
+          style="background-color: #aaaaaa;
+          height: auto;
+          text-align: center;
+          line-height: 30px;
+          font-size: ${this.buildUp.groups[Number(index)].font_size}px;">
+          ${this.buildUp.groups[Number(index)].value}</div>
+          <div class="vue-bf-group-content"
+          style="min-height: ${group_type[String(this.buildUp.groups[Number(index)].size)].min_height};">
+          </div>
+        </div>`
+        this.frameData.groups[Number(index)].render = group.render // 그룹 create 함수 안타기 위해서 바로 적용
+        return group
+      } else if (render === '' && index === null ) { // 커스텀한 기본 디자인에 따라 db에 있는 값을  
+        // 기본 셋팅은 s 사이즈 임
+        group.render = `<div
+          class="vue-bf-group"
+          style="border-radius: 5px;
           min-width: 250px;
           border: 1px solid #aaa;">
           <div 
           class="vue-bf-group-header"
-          style="background-color: #0004dc;
-          height: 30px;
+          style="background-color: #aaaaaa;
+          height: auto;
           text-align: center;
-          line-height: 30px;">
-          ${this.buildUp.groups[Number(index)].value}</div>
+          line-height: 30px;
+          font-size: 16px;">
+            group Id : ${group.id}</div>
           <div class="vue-bf-group-content"
           style="min-height: 120px;">
           </div>
         </div>`
-        return this.frameData.groups[Number(index)].render = group.render
+        // return this.frameData.groups[Number(index)].render = group.render
+        return group
       } else {
         // 외부에서 새로운 render 값을 전달해준경우
         return this.frameData.groups[Number(index)].render = render
@@ -555,8 +602,13 @@ export default {
     },
     async createGroup () {
       // group 생성함수
-      this.frameData.groups.push(this.designGroup()) // 신규 노드 함수에 추가
-      this.$refs.butterfly.redraw() // 캠퍼스 새로 그려줌
+      const designGroup = this.designGroup('')        
+      const groupObjectDate = { id: designGroup.id, value: `group Id : ${designGroup.id}`,font_size:16, size:'s' }
+      this.buildUp.groups.push(groupObjectDate);
+      this.frameData.groups.push(designGroup) // 신규 노드 함수에 추가
+      this.redrawCanvas() // 화면 다시 그려주는 함수
+
+      // this.$refs.butterfly.redraw() // 캠퍼스 새로 그려줌
     },
     async editNameNode () {
       // node 이름 변경함수
@@ -568,7 +620,6 @@ export default {
         this.buildUp.nodes[bulidupIndex].value = this.stringText // db에 저장될 값
         node[0].textContent = this.stringText // 캠퍼스 화면 갱신해줌
         this.stringText = null // input 내용비워줌
-        console.log(node)
       }       
     }, 
     async editFontSizeNode (type) {
@@ -591,26 +642,100 @@ export default {
         }
       }       
     }, 
-    async editGroup () {
+    async editNameGroup () {
       if (!this.selected_group) return alert('선택된 그룹이 없음')
       else {
         // group dom 구조 가져오기
         const group = document.getElementById(`bf_group_${this.selected_group.id}`).getElementsByClassName('vue-bf-group-header') // 선택한 노드의 엘리멘트값 가져옴
-        // group dom 구조 가져오기 end
-        console.log(group)
         const bulidupIndex = this.buildUp.groups.findIndex(x => x.id === this.selected_group.id)
-        this.buildUp.groups[bulidupIndex] = this.stringText // db에 저장될 값
+        if(bulidupIndex === -1 ) return alert('오류발생');
+        this.buildUp.groups[bulidupIndex].value = this.stringText // db에 저장될 값
         group[0].textContent = this.stringText // 캠퍼스 화면 갱신해줌
         this.stringText = null // input 내용비워줌
       }
-    }, // 그룹 화면에 부착용
+    }, // 그룹이름변경 함수
+    async editFontSizeGroup (type) {
+      if (!this.selected_group) return alert('선택된 그룹이 없음')
+      else {
+        // group dom 구조 가져오기
+        const group = document.getElementById(`bf_group_${this.selected_group.id}`).getElementsByClassName('vue-bf-group-header') // 선택한 노드의 엘리멘트값 가져옴
+        const bulidupIndex = this.buildUp.groups.findIndex(x => x.id === this.selected_group.id)
+        if(bulidupIndex === -1 ) return alert('오류발생');
+        if(type === 'up'){
+          let font_size = this.buildUp.groups[bulidupIndex].font_size + 2;
+          if(font_size > 30) {return;}
+          this.buildUp.groups[bulidupIndex].font_size = font_size; // db에 저장될 값
+          group[0].style.fontSize= `${font_size}px`;
+        }
+        else {
+          let font_size = this.buildUp.groups[bulidupIndex].font_size - 2;          
+          if(font_size < 10) {return;}
+          this.buildUp.groups[bulidupIndex].font_size = font_size; // db에 저장될 값
+          group[0].style.fontSize= `${font_size}px`;
+        }
+        // this.buildUp.groups[bulidupIndex].value = this.stringText // db에 저장될 값
+        // group[0].textContent = this.stringText // 캠퍼스 화면 갱신해줌
+        // this.stringText = null // input 내용비워줌
+      }
+    }, // 그룹 글자 크기 변경함수 
+    async editSizeGroup (type) {
+      if (!this.selected_group) return alert('선택된 그룹이 없음')
+      else {
+        // group dom 구조 가져오기
+        const groupHeader = document.getElementById(`bf_group_${this.selected_group.id}`).getElementsByClassName('vue-bf-group-header') // 선택한 그룹의 dom 헤더
+        const groupContent = document.getElementById(`bf_group_${this.selected_group.id}`).getElementsByClassName('vue-bf-group-content') // 선택 그룹의 dom 바디
+        const group_type = {
+        s:{
+          min_width:'250px',
+          min_height:'120px',
+        },
+        m:{
+          min_width:'350px',
+          min_height:'200px',
+        },
+        l:{
+          min_width:'500px',
+          min_height:'300px',
+        }
+      } // 사이즈 소/중/대 상수값
+        const bulidupIndex = this.buildUp.groups.findIndex(x => x.id === this.selected_group.id)
+        if(bulidupIndex === -1 ) return alert('오류발생');
+          let size = group_type[type];          
+          this.buildUp.groups[bulidupIndex].size = type; // db에 저장될 값
+          groupContent[0].style.minHeight= size.min_height;
+          groupHeader[0].style.minWidth= size.min_width;
+      }
+    }, // 그룹 사이즈 변경함수
     async redrawCanvas () {
+      const group_type = {
+        s:{
+          min_width:'250px',
+          min_height:'120px',
+        },
+        m:{
+          min_width:'350px',
+          min_height:'200px',
+        },
+        l:{
+          min_width:'500px',
+          min_height:'300px',
+        }
+      }
       // 캠퍼스 새로 그려주는 함수
       this.$refs.butterfly.redraw() // 캠퍼스 새로 그려줌
       this.buildUp.nodes.forEach((value) => {
         const node = document.getElementById(`bf_node_${value.id}`).getElementsByClassName('vue-bf-node')// node dom 구조 가져오기
         node[0].textContent  = value.value // 저장되어 있던 이름 적용
         node[0].style.fontSize= `${value.font_size}px`; //저장되어 있던 폰트 사이즈 적용
+      })//node 그려줌
+      this.buildUp.groups.forEach((value) => {
+        const groupHeader = document.getElementById(`bf_group_${value.id}`).getElementsByClassName('vue-bf-group-header') // 선택한 노드의 엘리멘트값 가져옴
+        const groupContent = document.getElementById(`bf_group_${value.id}`).getElementsByClassName('vue-bf-group-content') // 선택한 노드의 엘리멘트값 가져옴
+        groupHeader[0].textContent  = value.value // 저장되어 있던 이름 적용
+        groupHeader[0].style.fontSize= `${value.font_size}px`; //저장되어 있던 폰트 사이즈 적용
+        let size = group_type[value.size];                    
+        groupContent[0].style.minHeight= size.min_height;
+        groupHeader[0].style.minWidth= size.min_width;
       })
       // 캠퍼스 redraw 함수 실행
     },// 화면 새로 그려줌
