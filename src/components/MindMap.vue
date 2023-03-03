@@ -233,30 +233,69 @@ export default {
     }
   },
   methods:{
-    onEventListener(v) {
+    onEventListener (v) {
       console.log(v)
-      if (v.type.includes('node:') && this.currentMindVueEvent === 'drag:start') {
-        this.selected_node = v.node;
+      // [1] 노드 onclick
+      if (
+        this.currentMindVueEvent !== 'node:move' &&
+        v.type === 'node:click' &&
+        v.node
+      ) {
+        if (this.selected_group) this.selected_group = null
+        this.selected_node = this.selected_node === null ? v.node : null
       }
-      if (v.type.includes('group:') && this.currentMindVueEvent === 'drag:start') {
-        this.selected_group = v.group;
+      // [2] 그룹 onclick
+      if (
+        this.currentMindVueEvent !== 'group:move' &&
+        v.type === 'group:click' &&
+        v.group
+      ) {
+        if (this.selected_node) this.selected_node = null
+        this.selected_group = this.selected_group === null ? v.group : null
       }
-      if(v.type.includes('drag:end')){
-        if(v.dragNode?.nodes?.length < 0){
-          const index = this.frameData.nodes.findIndex( x => { return x.id === v.dragNode.id})
-          this.frameData.nodes[index].group = v.dragGroup.id;
-          this.frameData.nodes[index].top = v.dragNode.top;
-          this.frameData.nodes[index].left = v.dragNode.left;
-          this.$refs.butterfly.nodes = this.frameData.nodes; // 라이브러리 내 지역변수 갱신시켜줌
-        }
-        if(v.dragGroup !== null){
-          const index = this.frameData.groups.findIndex( x => { return x.id === v.dragGroup.id})
-          this.frameData.groups[index].top = v.dragGroup.top;
-          this.frameData.groups[index].left = v.dragGroup.left;
-          this.$refs.butterfly.groups = this.frameData.groups; // 라이브러리 내 지역변수 갱신시켜줌
-        }// 그룹이동
+      // [3] 컨버스 onclick
+      if (
+        this.currentMindVueEvent === 'drag:start' &&
+        v.type === 'canvas:click'
+      ) {
+        this.selected_node = null
+        this.selected_group = null
       }
-      this.currentMindVueEvent = v.type;
+      // [4] 노드 이동으로 그룹해제
+      if (
+        this.currentMindVueEvent === 'system.group.removeMembers' &&
+        v.type === 'drag:end'
+      ) {
+        console.log('removeMembers')
+        const index = this.frameData.nodes.findIndex(x => { return x.id === v.dragNode.id })
+        this.frameData.nodes[index].group = null
+      }
+      // [5] 노드 이동으로 그룹생성
+      if (
+        v.type === 'system.group.addMembers'
+      ) {
+        console.log('addMembers')
+        const index = this.frameData.nodes.findIndex(x => { return x.id === v.dragNode.id })
+        this.frameData.nodes[index].group = v.dragGroup.id
+      }
+      // [6] 그룹이동시 nodes 업데이트 (group 내 nodes가 존재하는 경우)
+      // 혹은 nodes 만 이동한 경우
+      if (v.type.includes('drag:end') && v.dragNode?.nodes?.length < 0) {
+        const index = this.frameData.nodes.findIndex(x => { return x.id === v.dragNode.id })
+        this.frameData.nodes[index].group = v.dragGroup.id
+        this.frameData.nodes[index].top = v.dragNode.top
+        this.frameData.nodes[index].left = v.dragNode.left
+        this.$refs.butterfly.nodes = this.frameData.nodes // 라이브러리 내 지역변수 갱신시켜줌
+      }
+      // [7] 그룹이동시 업데이트 (group 내 nodes가 존재하지 않는 경우)
+      if (v.type.includes('drag:end') && v.dragGroup !== null) {
+        const index = this.frameData.groups.findIndex(x => { return x.id === v.dragGroup.id })
+        this.frameData.groups[index].top = v.dragGroup.top
+        this.frameData.groups[index].left = v.dragGroup.left
+        this.$refs.butterfly.groups = this.frameData.groups // 라이브러리 내 지역변수 갱신시켜줌
+      }
+      // 이벤트 저장
+      this.currentMindVueEvent = v.type
     },
     deleteNode() {
       if (!this.selected_node) return alert('선택된 노드가 없음')
