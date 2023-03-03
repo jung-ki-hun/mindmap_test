@@ -51,13 +51,33 @@
           </button>
         </li><br>
         <li>
-          글자 크기
+         node 글자 크기
         </li><br>
         <li>
-          <button @click="editNameNode()">
-t          </button>
-          <button @click="editNameNode()">
-T          </button>
+          <button @click="editFontSizeNode('down')">
+            t</button>
+          <button @click="editFontSizeNode('up')">
+            T</button>
+        </li><br>
+        <li>
+          group 글자 크기
+        </li><br>
+        <li>
+          <button @click="editFontSizeNode('down')">
+            t</button>
+          <button @click="editFontSizeNode('up')">
+            T</button>
+        </li><br>
+        <li>
+          group 크기
+        </li><br>
+        <li>
+          <button @click="editFontSizeNode('down')">
+            s</button>
+          <button @click="editFontSizeNode('up')">
+            m</button>
+          <button @click="editFontSizeNode('down')">
+            l</button>      
         </li><br>
         <li>
           <button @click="editGroup()">
@@ -290,7 +310,7 @@ export default {
   },
   async created () {
     // render에 입력되는 div string 값이 변경되면 아래 edit 부분도 수정이 필요함
-    this.buildUp.nodes = [{ id: 'n-1', value: '프로젝트',font_size: 16},{ id: 'n-2', value: 'node',font_size: 16 }] // 추후 디비에서 들고오도록 수정
+    this.buildUp.nodes = [{ id: 'n-1', value: '프로젝트',font_size: 20},{ id: 'n-2', value: 'node',font_size: 20 }] // 추후 디비에서 들고오도록 수정
     if (this.buildUp.nodes.length > 0) {
       for (let index = 0; index < this.buildUp.nodes.length; index++) {
         this.designNode('', index)
@@ -352,7 +372,6 @@ export default {
         this.$refs.butterfly.groups = this.frameData.groups // 라이브러리 로컬데이터 수정
         this.selected_group = null
       }
-      console.log(this.selected_group.top)
     },
     /**
      *
@@ -412,7 +431,7 @@ export default {
         class="vue-bf-node"
         style="
           width: auto;
-          height: 25px;
+          height: auto;
           border-radius: 5px;
           background-color: #fff;
           border: 1px solid #aaa;
@@ -424,6 +443,7 @@ export default {
           font-size: ${this.buildUp.nodes[Number(index)].font_size}px;
         ">${this.buildUp.nodes[Number(index)].value}</div>`
         // 노드 css 적용위치
+        console.log(`dd : ${this.buildUp.nodes[Number(index)].font_size}`)
         this.frameData.nodes[Number(index)].render = node.render // 따로 create 함수를 타지 않고 바로 처리 하기 위해서
         return node;
       } else if(render === '' && index === null) { // 커스텀한 노드디자인으로 새로운 노드를 생성하려 할때(db에 없는 값)
@@ -432,7 +452,7 @@ export default {
         class="vue-bf-node"
         style="
           width: auto;
-          height: 25px;
+          height: auto;
           border-radius: 5px;
           background-color: #fff;
           border: 1px solid #aaa;
@@ -478,9 +498,24 @@ export default {
       }
       if (render === null) { // 라이브러리 기본 디자인
         return group
-      } else if (render === '') { // 커스텀한 기본 디자인
+      } else if (render === '' && index !== null ) { // 커스텀한 기본 디자인에 따라 db에 있는 값을 .
         // 외부에서 render 값을 공백으로 전달시 기본값을 줌 // 추후 디자인 기획나오면 확정 디자인 적용 인라인으로 적용해야 먹힘...ㅠㅠ
-        group.render = `<div class="vue-bf-group" style="border-radius: 5px;min-width: 250px;border: 1px solid #aaa;"><div class="vue-bf-group-header" style="background-color: #0004dc;height: 30px;text-align: center;line-height: 30px;">${this.buildUp.groups[Number(index)].value}</div><div class="vue-bf-group-content" style="min-height: 120px;"></div></div>`
+        group.render = `<div
+          class="vue-bf-group"
+          style="border-radius: 5px;
+          min-width: 250px;
+          border: 1px solid #aaa;">
+          <div 
+          class="vue-bf-group-header"
+          style="background-color: #0004dc;
+          height: 30px;
+          text-align: center;
+          line-height: 30px;">
+          ${this.buildUp.groups[Number(index)].value}</div>
+          <div class="vue-bf-group-content"
+          style="min-height: 120px;">
+          </div>
+        </div>`
         return this.frameData.groups[Number(index)].render = group.render
       } else {
         // 외부에서 새로운 render 값을 전달해준경우
@@ -494,7 +529,7 @@ export default {
       if (!this.selected_node) {
         // 선택된 노드가 없을경우
         const designNode = this.designNode('')        
-        const nodeObjectDate = { id: designNode.id, value: `node Id : ${designNode.id}` }
+        const nodeObjectDate = { id: designNode.id, value: `node Id : ${designNode.id}`,font_size:16 }
         this.frameData.nodes.push(designNode) // 신규 노드 함수에 추가
         this.buildUp.nodes.push(nodeObjectDate)// 생성시 내용 데이터 저장
         // this.$refs.butterfly.redraw() // 캠퍼스 새로 그려줌 -> 함수로 이동 시킬예정
@@ -509,7 +544,7 @@ export default {
           source: 'down', // 연결 포인트 위치
           target: 'up' // 대상의 연결 포인트 위치
         }
-        const nodeObjectDate = { id: designNode.id, value: `node Id : ${designNode.id}` }
+        const nodeObjectDate = { id: designNode.id, value: `node Id : ${designNode.id}`,font_size:16 }
         this.frameData.edges.push(edge) // 생성된 엣지값 추가
         this.frameData.nodes.push(designNode) // 생성된 엣지값 추가
         this.buildUp.nodes.push(nodeObjectDate)// 생성시 내용 데이터 저장
@@ -524,6 +559,7 @@ export default {
       this.$refs.butterfly.redraw() // 캠퍼스 새로 그려줌
     },
     async editNameNode () {
+      // node 이름 변경함수
       if (!this.selected_node) return alert('선택된 노드가 없음')
       else  {
         const node = document.getElementById(`bf_node_${this.selected_node.id}`).getElementsByClassName('vue-bf-node')// node dom 구조 가져오기// 선택한 노드의 엘리멘트값 가져옴
@@ -532,8 +568,29 @@ export default {
         this.buildUp.nodes[bulidupIndex].value = this.stringText // db에 저장될 값
         node[0].textContent = this.stringText // 캠퍼스 화면 갱신해줌
         this.stringText = null // input 내용비워줌
+        console.log(node)
       }       
-    }, // 노드 화면에 부착용
+    }, 
+    async editFontSizeNode (type) {
+      // node 글자 크기 변경
+      if (!this.selected_node) return alert('선택된 노드가 없음')
+      else  {
+        const node = document.getElementById(`bf_node_${this.selected_node.id}`).getElementsByClassName('vue-bf-node')// node dom 구조 가져오기// 선택한 노드의 엘리멘트값 가져옴
+        const bulidupIndex = this.buildUp.nodes.findIndex(x => x.id === this.selected_node.id) // 빌드업 데이터 들고옴
+        if(bulidupIndex === -1 ) return alert('오류발생');
+        if(type === 'up'){
+          let font_size = this.buildUp.nodes[bulidupIndex].font_size + 2;
+          this.buildUp.nodes[bulidupIndex].font_size = font_size; // db에 저장될 값
+          node[0].style.fontSize= `${font_size}px`;
+        }
+        else {
+          let font_size = this.buildUp.nodes[bulidupIndex].font_size - 2;          
+          if(font_size < 10) {return;}
+          this.buildUp.nodes[bulidupIndex].font_size = font_size; // db에 저장될 값
+          node[0].style.fontSize= `${font_size}px`;
+        }
+      }       
+    }, 
     async editGroup () {
       if (!this.selected_group) return alert('선택된 그룹이 없음')
       else {
@@ -550,9 +607,10 @@ export default {
     async redrawCanvas () {
       // 캠퍼스 새로 그려주는 함수
       this.$refs.butterfly.redraw() // 캠퍼스 새로 그려줌
-      this.buildUp.nodes.forEach((value,index) => {
+      this.buildUp.nodes.forEach((value) => {
         const node = document.getElementById(`bf_node_${value.id}`).getElementsByClassName('vue-bf-node')// node dom 구조 가져오기
-        node[0].textContent  = this.buildUp.nodes[index].value // 저장되어 있던 이름으로 변경해줌         
+        node[0].textContent  = value.value // 저장되어 있던 이름 적용
+        node[0].style.fontSize= `${value.font_size}px`; //저장되어 있던 폰트 사이즈 적용
       })
       // 캠퍼스 redraw 함수 실행
     },// 화면 새로 그려줌
