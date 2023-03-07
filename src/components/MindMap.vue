@@ -167,10 +167,10 @@ export default {
           //   }
           // },
           zoomGap: 0.001,       // mouse zoom in and out gap settings
-          autoFixCanvas: {     // auto expand canvas when drag nodes or edges near the edge of canvas.
-            enable: true,
-            autoMovePadding: [20, 20, 20, 20]
-          },
+          // autoFixCanvas: {     // auto expand canvas when drag nodes or edges near the edge of canvas.
+          //   enable: true,
+          //   autoMovePadding: [20, 20, 20, 20]
+          // },
           autoResizeRootSize: true // automatically adapt to the root size, the default is true
         },
         global: {                // custom configuration, will run through all canvas, group, node, edge, endpoint objects
@@ -656,6 +656,7 @@ export default {
         const node = document.getElementById(`bf_node_${this.selected_node.id}`).getElementsByClassName('vue-bf-node')// node dom 구조 가져오기// 선택한 노드의 엘리멘트값 가져옴
         const bulidupIndex = this.buildUp.nodes.findIndex(x => x.id === this.selected_node.id) // 빌드업 데이터 들고옴
         if(bulidupIndex === -1 ) return alert('오류발생');
+        if(this.stringText === null ) return alert('변경할 내용을 입력해주세요');
         this.buildUp.nodes[bulidupIndex].value = this.stringText // db에 저장될 값
         node[0].textContent = this.stringText // 캠퍼스 화면 갱신해줌
         this.stringText = null // input 내용비워줌
@@ -679,7 +680,10 @@ export default {
           this.buildUp.nodes[bulidupIndex].font_size = font_size; // db에 저장될 값
           node[0].style.fontSize= `${font_size}px`;
         }
-      }       
+      }
+      this.selected_node.moveTo(this.selected_node.left, this.selected_node.top)
+      console.log({...this.selected_node})
+      // this.selected_node.moveTo(this.selected_node.options.left , this.selected_node.option0s.top)
     }, 
     async editNameGroup () {
       if (!this.selected_group) return alert('선택된 그룹이 없음')
@@ -688,6 +692,7 @@ export default {
         const group = document.getElementById(`bf_group_${this.selected_group.id}`).getElementsByClassName('vue-bf-group-header') // 선택한 노드의 엘리멘트값 가져옴
         const bulidupIndex = this.buildUp.groups.findIndex(x => x.id === this.selected_group.id)
         if(bulidupIndex === -1 ) return alert('오류발생');
+        if(this.stringText === null ) return alert('변경할 내용을 입력해주세요')
         this.buildUp.groups[bulidupIndex].value = this.stringText // db에 저장될 값
         group[0].textContent = this.stringText // 캠퍼스 화면 갱신해줌
         this.stringText = null // input 내용비워줌
@@ -789,7 +794,32 @@ export default {
       this.contextmenu_style = `position:absolute;left:${point.x}px;top:${point.y}px;z-index:99999` //메뉴 기본 css // 필요시 해당 위치에 추가
       this.mousePoint.x = e.layerX
       this.mousePoint.y = e.layerY // 마우스 좌표 저장 -> 노드 생성시 부여하기 위해서
-    }
+    },
+    setURLStringTo_A_Tag (string) { // 문자열 내에 링크있는경우 a 태그로 변경
+      // 정규식 : http, https로 시작하는 링크 또는 .com .kr 과같이 콤마뒤 2-3인 경우
+      var urlPattern = /\b(?:https?):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]|[0-9a-zA-Zㄱ-ㅎㅏ-ㅣ가-힣]*([-_.]?[0-9a-zA-Z])*\.[a-zA-Z]{2,3}/gim;
+      if (urlPattern.test(string)) { // 메세지에 링크가 포함되어있는경우
+        let returnText = '';
+        string.split('\n').forEach(z => { // 개행문자별로 자르기
+          const splitMSG = z.match(urlPattern);
+          let checkString = z; // 문자체크용
+          if (splitMSG) { // 정규식과 매칭되는 문자가 있는 경우
+            splitMSG.forEach(y => { // 매칭되는 문자를 a태그로 변환후 checkString 지움
+              var httpCheck = /\b(?:https?):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim;
+              var url = y;
+              if (!httpCheck.test(y)) url = 'http://' + url; // http 혹은 https 없는경우 링크 클릭시 villains.com/naver.com(예)로 타게됨
+              returnText += `${checkString.split(y)[0]} <a href="${url}" target="_blank" style="color:#489CFF;">${y}</a>`;
+              checkString = checkString.replace(y, '');
+            });
+          } else { // 없는경우 그대로 출력
+            returnText += z;
+          }
+          returnText += '\n';
+        });
+        string = returnText;
+      }
+      return string;
+    },
     
   }
 
