@@ -795,31 +795,31 @@ export default {
       this.mousePoint.x = e.layerX
       this.mousePoint.y = e.layerY // 마우스 좌표 저장 -> 노드 생성시 부여하기 위해서
     },
-    setURLStringTo_A_Tag (string) { // 문자열 내에 링크있는경우 a 태그로 변경
-      // 정규식 : http, https로 시작하는 링크 또는 .com .kr 과같이 콤마뒤 2-3인 경우
-      var urlPattern = /\b(?:https?):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]|[0-9a-zA-Zㄱ-ㅎㅏ-ㅣ가-힣]*([-_.]?[0-9a-zA-Z])*\.[a-zA-Z]{2,3}/gim;
-      if (urlPattern.test(string)) { // 메세지에 링크가 포함되어있는경우
-        let returnText = '';
-        string.split('\n').forEach(z => { // 개행문자별로 자르기
-          const splitMSG = z.match(urlPattern);
-          let checkString = z; // 문자체크용
-          if (splitMSG) { // 정규식과 매칭되는 문자가 있는 경우
-            splitMSG.forEach(y => { // 매칭되는 문자를 a태그로 변환후 checkString 지움
-              var httpCheck = /\b(?:https?):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim;
-              var url = y;
-              if (!httpCheck.test(y)) url = 'http://' + url; // http 혹은 https 없는경우 링크 클릭시 villains.com/naver.com(예)로 타게됨
-              returnText += `${checkString.split(y)[0]} <a href="${url}" target="_blank" style="color:#489CFF;">${y}</a>`;
-              checkString = checkString.replace(y, '');
-            });
-          } else { // 없는경우 그대로 출력
-            returnText += z;
-          }
-          returnText += '\n';
-        });
-        string = returnText;
-      }
-      return string;
-    },
+    // setURLStringTo_A_Tag (string) { // 문자열 내에 링크있는경우 a 태그로 변경
+    //   // 정규식 : http, https로 시작하는 링크 또는 .com .kr 과같이 콤마뒤 2-3인 경우
+    //   var urlPattern = /\b(?:https?):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]|[0-9a-zA-Zㄱ-ㅎㅏ-ㅣ가-힣]*([-_.]?[0-9a-zA-Z])*\.[a-zA-Z]{2,3}/gim;
+    //   if (urlPattern.test(string)) { // 메세지에 링크가 포함되어있는경우
+    //     let returnText = '';
+    //     string.split('\n').forEach(z => { // 개행문자별로 자르기
+    //       const splitMSG = z.match(urlPattern);
+    //       let checkString = z; // 문자체크용
+    //       if (splitMSG) { // 정규식과 매칭되는 문자가 있는 경우
+    //         splitMSG.forEach(y => { // 매칭되는 문자를 a태그로 변환후 checkString 지움
+    //           var httpCheck = /\b(?:https?):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim;
+    //           var url = y;
+    //           if (!httpCheck.test(y)) url = 'http://' + url; // http 혹은 https 없는경우 링크 클릭시 villains.com/naver.com(예)로 타게됨
+    //           returnText += `${checkString.split(y)[0]} <a href="${url}" target="_blank" style="color:#489CFF;">${y}</a>`;
+    //           checkString = checkString.replace(y, '');
+    //         });
+    //       } else { // 없는경우 그대로 출력
+    //         returnText += z;
+    //       }
+    //       returnText += '\n';
+    //     });
+    //     string = returnText;
+    //   }
+    //   return string;
+    // },
     
   }
 
