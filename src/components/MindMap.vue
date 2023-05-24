@@ -94,6 +94,11 @@
             delete Group
           </button>
         </li><br>
+        <li>
+          <button @click="test()">
+            test
+          </button>
+        </li><br>
       </ul>
     </div>
   </div>
@@ -115,6 +120,7 @@ export default {
   },
   data () {
     return {
+      id:this.$router.params.id || 1,
       buildUp: {
         groups: [],
         nodes: [],
@@ -136,7 +142,8 @@ export default {
         theme: {                 // theme (optional) 
           group: {
             type: 'normal',       // Node group type: normal (drag in and drag out), inner (can only be dragged in and not out)
-            dragGroupZIndex: 50  // Node group z-index: (optional, Default:50)
+            dragGroupZIndex: 50,   // Node group z-index: (optional, Default:50)
+            resize: true,
           },
           node: {
             dragNodeZIndex: 250  //node z-index/2 (optional, Default:250)
@@ -338,6 +345,11 @@ export default {
     }
   },
   methods:{
+    test (){
+      console.log(this.$refs.butterfly.canvas.groups)
+      // this.$refs.butterfly.canvas.groups[0].height = 300;
+
+    },
     onEventListener (v) {
       console.log(v)
       // [1] 노드 onclick
@@ -372,16 +384,16 @@ export default {
         v.type === 'drag:end'
       ) {
         console.log('removeMembers')
-        const index = this.frameData.nodes.findIndex(x => { return x.id === v.dragNode.id })
-        this.frameData.nodes[index].group = null
+        // const index = this.frameData.nodes.findIndex(x => { return x.id === v.dragNode.id })
+        // this.frameData.nodes[index].group = null
       }
       // [5] 노드 이동으로 그룹생성
       if (
         v.type === 'system.group.addMembers'
       ) {
         console.log('addMembers')
-        const index = this.frameData.nodes.findIndex(x => { return x.id === v.dragNode.id })
-        this.frameData.nodes[index].group = v.dragGroup.id
+        // const index = this.frameData.nodes.findIndex(x => { return x.id === v.dragNode.id })
+        // this.frameData.nodes[index].group = v.dragGroup.id
       }
       // [6] 그룹이동시 nodes 업데이트 (group 내 nodes가 존재하는 경우)
       // 혹은 nodes 만 이동한 경우
@@ -493,7 +505,7 @@ export default {
           font-size: ${this.buildUp.nodes[Number(index)].font_size}px;
         ">${this.buildUp.nodes[Number(index)].value}</div>`
         // 노드 css 적용위치
-        console.log(`dd : ${this.buildUp.nodes[Number(index)].font_size}`)
+        // console.log(`dd : ${this.buildUp.nodes[Number(index)].font_size}`)
         this.frameData.nodes[Number(index)].render = node.render // 따로 create 함수를 타지 않고 바로 처리 하기 위해서
         return node;
       } else if(render === '' && index === null) { // 커스텀한 노드디자인으로 새로운 노드를 생성하려 할때(db에 없는 값)
@@ -639,6 +651,42 @@ export default {
         this.selected_node = null
       }
     },
+    async getMindMapData(){
+      // db에서 값을들고옴
+      try {
+        const data = await this.$axios.get(`/crm/v3/proj_buildup/${this.id}`, {
+          params: {
+            proj_no: this.proj_no
+          }
+        }).then((res) => res.data)
+          this.buildUp = data.query.buildUp;
+          this.frameData = data.query.frameData;
+      } catch (e) {
+        console.error(e)
+      } finally {
+      }
+    },
+    async saveMindMapData(){
+      // db에 값을 저장
+      try {
+        const pb_content = {
+          buildUp:this.buildUp,
+          frameData:this.frameData,   
+        }
+        const data = await this.$axios.put(`/crm/v3/proj_buildup/${this.id}`, {
+          params: {
+            proj_no: this.proj_no,
+            pb_content : JSON.stringify(pb_content),
+            state : this.payload.state,
+          }
+        }).then((res) => res.data)
+          this.buildUp = data.query.buildUp;
+          this.frameData = data.query.frameData;
+      } catch (e) {
+        console.error(e)
+      } finally {
+      }
+    },
     async createGroup () {
       // group 생성함수
       const designGroup = this.designGroup('')        
@@ -739,11 +787,21 @@ export default {
       } // 사이즈 소/중/대 상수값
         const bulidupIndex = this.buildUp.groups.findIndex(x => x.id === this.selected_group.id)
         if(bulidupIndex === -1 ) return alert('오류발생');
-          let size = group_type[type];          
+        const canvasIndex = this.$refs.butterfly.canvas.groups.findIndex(x => x.id === this.selected_group.id) // canvas에 직접 접근
+        if(canvasIndex === -1 ) return alert('오류발생');
+        let size = group_type[type];          
+        console.log(canvasIndex)
+        console.log(size)
           this.buildUp.groups[bulidupIndex].size = type; // db에 저장될 값
           groupContent[0].style.minHeight= size.min_height;
+          this.$refs.butterfly.canvas.groups[Number(canvasIndex)].resize = true;
+          this.$refs.butterfly.canvas.groups[Number(canvasIndex)].width = Number(String(size.min_width).slice(0,-2))
+          this.$refs.butterfly.canvas.groups[Number(canvasIndex)].height = Number(String(size.min_height).slice(0,-2))
           groupHeader[0].style.minWidth= size.min_width;
+          groupHeader[0].style.minWidth= size.min_width;
+          console.log(this.$refs.butterfly.canvas.groups[Number(canvasIndex)])          
       }
+      this.redrawCanvas()
     }, // 그룹 사이즈 변경함수
     async redrawCanvas () {
       const group_type = {
@@ -775,6 +833,11 @@ export default {
         let size = group_type[value.size];                    
         groupContent[0].style.minHeight= size.min_height;
         groupHeader[0].style.minWidth= size.min_width;
+        const canvasIndex = this.$refs.butterfly.canvas.groups.findIndex(x => x.id === value.id) // canvas에 직접 접근
+        if(canvasIndex === -1 ) return alert('오류발생');
+        this.$refs.butterfly.canvas.groups[Number(canvasIndex)].resize = true;
+        this.$refs.butterfly.canvas.groups[Number(canvasIndex)].width = Number(String(size.min_width).slice(0,-2))
+        this.$refs.butterfly.canvas.groups[Number(canvasIndex)].height = Number(String(size.min_height).slice(0,-2))
       })
       // 캠퍼스 redraw 함수 실행
     },// 화면 새로 그려줌
