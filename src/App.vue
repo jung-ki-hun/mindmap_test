@@ -10,16 +10,19 @@
       @removeconfirmationrequired="initRemovingConfirmation"
       @save="handleChartSave" ref="chart">
         </flowchart> -->
-        <MindMap :msg="'테스트'"/>
+        <!-- <MindMap :msg="'테스트'"/> -->
+        <Gantt></Gantt>
   </div>
 </template>
 
 <script>
-import MindMap from './components/MindMap.vue'
+import Gantt from './components/Gantt.vue';
+// import MindMap from './components/MindMap.vue'
 export default {
   name: 'App',
   components: {
-    MindMap
+    // MindMap
+    Gantt
 },
   data: function() {
       return {

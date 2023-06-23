@@ -12,6 +12,7 @@
     "butterfly-vue": "^1.0.22",
     "core-js": "^3.8.3",
     "element-ui": "^2.15.13",
+    "frappe-gantt": "^0.6.1",
     "run": "^1.4.0",
     "serve": "^14.2.0",
     "vue": "^2.6.14",

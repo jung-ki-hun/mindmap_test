@@ -1,0 +1,41 @@
+<html>
+  <head>
+    dd
+  </head>
+<body>
+
+  <div id="editable" ondblclick="makeEditable()">Double-click me to edit</div>
+</body>
+</html>
+
+<script>
+function makeEditable() {
+  // div 요소를 가져옴
+  const div = document.getElementById("editable");
+
+  // 새로운 input 요소를 생성
+  const input = document.createElement("input");
+
+  // 기존 div의 값을 input 요소의 value로 설정
+  input.value = div.innerText;
+
+  // input 요소가 포함될 div의 스타일을 설정
+  input.style.width = "100%";
+  input.style.height = "100%";
+  input.style.border = "none";
+  input.style.padding = "0";
+  input.style.margin = "0";
+
+  // div 요소 안에 input 요소를 추가
+  div.innerHTML = "";
+  div.appendChild(input);
+
+  // input 요소를 선택한 상태로 설정
+  input.select();
+
+  // input 요소에서 포커스를 잃으면 다시 div 요소로 변환
+  input.onblur = function() {
+    div.innerHTML = input.value;
+  };
+}
+</script>
